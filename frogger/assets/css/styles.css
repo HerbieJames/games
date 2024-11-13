@@ -81,6 +81,14 @@ h4 {
     width: 32px;
 }
 
+.tile {
+    z-index: 0;
+}
+
+.entity {
+    z-index: 1;
+}
+
 @media screen and (max-width:388px){
     #game-display {
         height: 192px;

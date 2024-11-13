@@ -2,7 +2,7 @@ let active = false;
 let startBtn = document.getElementById("startBtn");
 let grid = document.getElementById("game-display");
 let tick = 0
-let frog = "/frogger/assets/images/frog1.PNG"
+let frog = "frogger/assets/images/frog1.PNG"
 
 function timer(){
     if (tick == 1) {
@@ -15,15 +15,42 @@ function timer(){
     setTimeout(timer, 250);
 }
 
-function createImg(id, src, x, y) {
+function createImg(x, y, src, id, classes) {
     var img = document.createElement('img');
-    if ( id != null ) img.id = id;
-    img.src = src;
-    img.style.gridColumn = x;
-    img.style.gridRow = y;
+    var neighbor;
+    var i = 0
+    while ((valid = false) && (i < grid.childElementCount)) {
+        var head = document.querySelector(`#game-display :nth-child(${i})`);
+        if (head != null) {
+            if ((head.style.gridColumn == x)&&(head.style.gridrow == y)) {
+                neighbor = head;
+                valid = true;
+            }
+        }
+        i += 1
+    }
+    console.log(i);
+    console.log(valid);
+    i = 0
     img.classList.add("sprite");
     img.alt = "";
-    grid.appendChild(img);
+    img.style.imageRendering = "pixelated";
+    img.style.gridColumn = x;
+    img.style.gridRow    = y;
+    img.src = img.src != null ? src : null;
+    img.id  = img.id  != null ? id  : null;
+    if (classes != null) { 
+        classes.forEach((element) => {
+            img.classList.add(element);
+        });
+    }
+    console.log(`<!--${id}'s Neighbor-->`)
+    console.log(neighbor)
+    if (neighbor != null) {
+        neighbor.insertAdjacentElement("beforebegin", img)
+    } else {
+        grid.appendChild(img);
+    }
 }
 
 function startUp() {
@@ -34,7 +61,10 @@ function startUp() {
             // remove startBtn
             // remove any button press event listener
 
-        createImg("player", frog, 6, 12);
+        createImg(6, 12, frog, "player", ["entity"]);
+        createImg(4, 12, frog, "player2", ["entity"]);
+        createImg(8, 12, frog, "player3", ["entity"]);
+        createImg(6, 12, "frogger/assets/images/log1.PNG")
     }
 }
 
