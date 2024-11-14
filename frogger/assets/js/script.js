@@ -2,7 +2,7 @@ let active = false;
 let startBtn = document.getElementById("startBtn");
 let grid = document.getElementById("game-display");
 let tick = 0
-let frog = "frogger/assets/images/frog1.PNG"
+let frog = "frog1.PNG"
 
 function timer(){
     if (tick == 1) {
@@ -15,41 +15,50 @@ function timer(){
     setTimeout(timer, 250);
 }
 
-function createImg(x, y, src, id, classes) {
+/**Creates an image with src, id and class 
+ * at a specified location on the grid, and
+ * appropriate position in the DOM
+ * @param {Number} x       column position of image in grid
+ * @param {Number} y       row position of image in grid
+ * @param {String} src     src of image (in "/frogger/assets/images/")
+ * @param {Array}  classes Array of strings; classes for image to assume
+ * @param {String} id      id for image to assume
+ */
+
+function initSprite(x, y, src, classes, id) {
     var img = document.createElement('img');
-    var neighbor;
-    var i = 0
-    while ((valid = false) && (i < grid.childElementCount)) {
-        var head = document.querySelector(`#game-display :nth-child(${i})`);
-        if (head != null) {
-            if ((head.style.gridColumn == x)&&(head.style.gridrow == y)) {
-                neighbor = head;
-                valid = true;
-            }
-        }
-        i += 1
-    }
-    console.log(i);
-    console.log(valid);
-    i = 0
     img.classList.add("sprite");
     img.alt = "";
     img.style.imageRendering = "pixelated";
     img.style.gridColumn = x;
     img.style.gridRow    = y;
+    src = "/frogger/assets/images/".concat(src);
     img.src = img.src != null ? src : null;
     img.id  = img.id  != null ? id  : null;
+    var neighbor;
+    for (let i = 0; i <= grid.childElementCount; i++) {
+        var head = document.querySelector(`#game-display :nth-child(${i})`);
+        if (head != null) {
+            var headX = head.style.gridColumn
+            var headY = head.style.gridRow
+            if (((headX >= x)&&(headY == y))||(headY > y)) {
+                neighbor = head;
+                break;
+            }
+        }
+    }
     if (classes != null) { 
         classes.forEach((element) => {
             img.classList.add(element);
         });
     }
-    console.log(`<!--${id}'s Neighbor-->`)
-    console.log(neighbor)
     if (neighbor != null) {
         neighbor.insertAdjacentElement("beforebegin", img)
     } else {
         grid.appendChild(img);
+    }
+    if (img.id != null) {
+        console.log('initSprite(): "#'+id, "created before", neighbor, "at", headX, headY+'"')
     }
 }
 
@@ -61,13 +70,8 @@ function startUp() {
             // remove startBtn
             // remove any button press event listener
 
-        createImg(6, 12, frog, "player", ["entity"]);
-        createImg(4, 12, frog, "player2", ["entity"]);
-        createImg(8, 12, frog, "player3", ["entity"]);
-        createImg(6, 12, "frogger/assets/images/log1.PNG")
+        initSprite(6, 12, frog, ["entity"], "player");
     }
 }
 
 timer();
-
-//event listener for any button press to trigger startUp
