@@ -67,20 +67,20 @@ function initRoadRows(y) {
     y.forEach((element) => {
         if (y.includes(element-1)) {
             if (y.includes(element+1)) {
-                for (let i = 0; i < 12; i++) {
+                for (let i = 1; i <= 12; i++) {
                     initSprite(i, element, "road4.PNG", ["tile", "road"]);
                 }
             } else {
-                for (let i = 0; i < 12; i++) {
+                for (let i = 1; i <= 12; i++) {
                     initSprite(i, element, "road3.PNG", ["tile", "road"]);
                 }
             }
         } else if (y.includes(element+1)) {
-            for (let i = 0; i < 12; i++) {
+            for (let i = 1; i <= 12; i++) {
                 initSprite(i, element, "road2.PNG", ["tile", "road"]);
             }
         } else {
-            for (let i = 0; i < 12; i++) {
+            for (let i = 1; i <= 12; i++) {
                 initSprite(i, element, "road1.PNG", ["tile", "road"]);
             }
         }
@@ -88,23 +88,23 @@ function initRoadRows(y) {
 }
 
 function initWaterRow(y) {
-    for (let i = 0; i < 12; i++) {
+    for (let i = 1; i <= 12; i++) {
         initSprite(i, y, "water1.PNG", ["tile", "water"]);
     }
 }
 
 function initGrassRow(y) {
-    for (let i = 0; i < 12; i++) {
+    for (let i = 1; i <= 12; i++) {
         initSprite(i, y, "grass1.PNG", ["tile", "grass"]);
     }
 }
 
 function initLevel(y) {
     var roadRows = []
-    for (let i = 0; i < 12; i++) {
+    for (let i = 1; i <= 12; i++) {
         initSprite(i, 11, "grass3.PNG", ["tile"]);
     }
-    for (let i = 0; i < 12; i++) {
+    for (let i = 1; i <= 12; i++) {
         initSprite(i, 1, "grass4.PNG", ["tile"]);
     }
     for (let y = 2; y < 11; y++) {
