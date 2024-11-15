@@ -179,11 +179,21 @@ function initLevel() {
         initSprite(i, 11, "grass3.PNG", ["tile"]);
     }
     console.log("11: start");
+    for (let i = 1; i <= 10; i++) {
+        var neighbor = nearestInDOM(12,i);
+        if (neighbor != undefined) {
+            var br = document.createElement('br');
+            neighbor.insertAdjacentElement("afterend", br);
+        }
+    }
     setPlayer();
 }
 
 function clearLvl() {
     document.querySelectorAll(".tile").forEach((element) => {
+        element.remove();
+    });
+    document.querySelectorAll("br").forEach((element) => {
         element.remove();
     });
     console.log("----CLEARED----")
