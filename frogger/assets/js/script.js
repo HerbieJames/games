@@ -172,17 +172,17 @@ function initLevel() {
         var totalRow = roadRow + waterRow + grassRow;
         if (totalRow * Math.random() <= roadRow) {
             roadRows.push(y);
-            console.log(y + ": ROAD");
         } else if (totalRow * Math.random() <= roadRow + waterRow) {
             waterRows.push(y);
-            console.log(y + ": WATER");
         } else {
             grassRows.push(y);
-            console.log(y + ": GRASS");
         }
     }
-    initWaterRow(waterRows);
+    console.log("road:", roadRows);
+    console.log("water:", waterRows);
+    console.log("grass:", grassRows);
     initRoadRows(roadRows);
+    initWaterRow(waterRows);
     initGrassRow(grassRows);
     for (let i = 1; i <= 12; i++) {
         initSprite(i, 11, "grass3.PNG", ["tile"]);
@@ -195,9 +195,6 @@ function initLevel() {
             neighbor.insertAdjacentElement("afterend", br);
         }
     }
-    console.log("road:", roadRows);
-    console.log("water:", waterRows);
-    console.log("grass:", grassRows);
     setPlayer();
 }
 
