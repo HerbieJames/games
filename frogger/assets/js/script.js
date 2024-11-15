@@ -3,8 +3,9 @@ const startBtnEl = document.getElementById("startBtnEl");
 const upBtnEl    = document.getElementById("btnUpEl");
 const leftBtnEl  = document.getElementById("btnLeftEl");
 const rightBtnEl = document.getElementById("btnRightEl");
-const downBtnEl  = document.getElementById("btnDownEl");
 const grid       = document.getElementById("gameDisplayEl");
+const gridX      = 12;
+const gridY      = 11;
 let frog   = "frog1.PNG";
 let active = false;
 let tick   = 0;
@@ -12,7 +13,28 @@ let player;
 let playerX;
 let playerY;
 
-//INITIALIZATIONS
+//SPRITE FUNCTIONS
+
+/**Returns the element on or closest ahead of a given co-ordinate on the grid.
+ * @param {Number} x coordinate in grid with left as 1
+ * @param {Number} y coordinate in grid with top as 1
+*/
+function nearestInDOM(x,y) {
+    var element;
+    for (let i = 0; i <= grid.childElementCount; i++) {
+        var head = document.querySelector(`#gameDisplayEl :nth-child(${i})`);
+        if (head != undefined) {
+            var headX = head.style.gridColumn;
+            var headY = head.style.gridRow;
+            if (((headX >= x)&&(headY == y))||(headY > y)) {
+                element = head;
+                break;
+            }
+        }
+    }
+    return element;
+}
+
 /**Creates an image with src, id and class 
  * at a specified location on the grid, and
  * appropriate position in the DOM
@@ -21,21 +43,10 @@ let playerY;
  * @param {String} src     src of image (in "/frogger/assets/images/")
  * @param {Array}  classes Array of strings; classes for image to assume
  * @param {String} id      id for image to assume
- */
+*/
 function initSprite(x, y, src, classes, id) {
     var img = document.createElement('img');
-    var neighbor;
-    for (let i = 0; i <= grid.childElementCount; i++) {
-        var head = document.querySelector(`#gameDisplayEl :nth-child(${i})`);
-        if (head != undefined) {
-            var headX = head.style.gridColumn;
-            var headY = head.style.gridRow;
-            if (((headX >= x)&&(headY == y))||(headY > y)) {
-                neighbor = head;
-                break;
-            }
-        }
-    }
+    var neighbor = nearestInDOM(x,y);
     img.classList.add("sprite");
     img.alt = " ";
     img.style.gridColumn = x;
@@ -54,10 +65,43 @@ function initSprite(x, y, src, classes, id) {
         grid.appendChild(img);
     }
     if (id  !== undefined) {
-        console.log('initSprite(): "#'+id, "created before", neighbor, "at", headX, headY+'"');
+        console.log('initSprite(): "#'+id, "created before", neighbor+'"', img);
     }
 }
 
+/**Sets the co-ordiated of a given element on the grid.
+ * @param {Element} element the target HTML element
+ * @param {Number}  x       row position of element in grid
+ * @param {Number}  y       column position of element in grid
+*/
+function setSpriteXY(element, x, y) {
+    var neighbor = nearestInDOM(x,y);
+    if (neighbor != undefined) { neighbor.after(element); }
+    element.style.gridColumn = x;
+    element.style.gridRow = y;
+}
+
+/**Moves a given element on the grid a specified distance.
+ * @param {Element} element the target HTML element
+ * @param {Number}  x       row distance where positive is right
+ * @param {Number}  y       column distance where posititve is down
+*/
+function moveSprite(element, x, y) {
+    var neighbor = nearestInDOM(element.style.gridColumn - -x,element.style.gridRow - -y);
+    if (neighbor != undefined) { neighbor.after(element); }
+    element.style.gridColumn -= -x;
+    element.style.gridRow -= -y;
+}
+
+/**Rotates a given element a specified angle in degrees.
+ * @param {Element} element the target HTML element
+ * @param {Number}  deg     orientation to set element where 0 is up
+*/
+function setSpriteDeg(element, deg) {
+    element.style.transform = `rotate(${deg}deg)`;
+}
+
+//TILE FUNCTIONS
 /**Initializes road tiles on all rows specified by an array.
  * @param {Array} y the rows where tiles will be generated
  */
@@ -103,21 +147,17 @@ function initGrassRow(y) {
     }
 }
 
+//LEVEL FUNCTIONS
+
 /**Initializes level by randomly allocating certain
  * types of tiles to certain rows, then initializing them.
  */
 function initLevel() {
-    if (player) {
-        player.gridColumn = 6;
-        player.gridColumn = 11;
-    }
     var roadRows = []
-    for (let i = 1; i <= 12; i++) {
-        initSprite(i, 11, "grass3.PNG", ["tile"]);
-    }
     for (let i = 1; i <= 12; i++) {
         initSprite(i, 1, "grass4.PNG", ["tile"]);
     }
+    console.log("1: end");
     for (let y = 2; y < 11; y++) {
         var roadRow  = 9 - roadRows.length;
         var waterRow = 9 - (document.querySelectorAll('#gameDisplayEl .water').length)/12;
@@ -125,21 +165,84 @@ function initLevel() {
         var totalRow = roadRow + waterRow + grassRow;
         if (totalRow * Math.random() <= roadRow) {
             roadRows.push(y);
-            console.log("ROAD");
+            console.log(y + ": ROAD");
         } else if (totalRow * Math.random() <= roadRow + waterRow) {
             initWaterRow(y);
-            console.log("WATER");
+            console.log(y + ": WATER");
         } else {
             initGrassRow(y);
-            console.log("GRASS");
+            console.log(y + ": GRASS");
         }
     }
     initRoadRows(roadRows);
+    for (let i = 1; i <= 12; i++) {
+        initSprite(i, 11, "grass3.PNG", ["tile"]);
+    }
+    console.log("11: start");
+    setPlayer();
 }
 
-//INTERACTIONS
-/**Repeats commands distributed in half and quarters
+function clearLvl() {
+    document.querySelectorAll(".tile").forEach((element) => {
+        element.remove();
+    });
+    console.log("----CLEARED----")
+}
+
+function stageLvl() {
+    upBtnEl.removeEventListener('click', moveUp)
+    leftBtnEl.removeEventListener('click', moveLeft)
+    rightBtnEl.removeEventListener('click', moveRight)
+    clearLvl();
+    setTimeout(initLevel, 1000);
+    setPlayer;
+}
+
+//GAME FUNCTIONS
+function initPlayer() {
+    initSprite(1, 1, frog, ["entity"], "player");
+    player = document.getElementById("player");
+}
+
+function setPlayer() {
+    setSpriteXY(player, 6, 11)
+    upBtnEl.addEventListener("click", moveUp);
+    leftBtnEl.addEventListener("click", moveLeft);
+    rightBtnEl.addEventListener("click", moveRight);
+}
+
+/** Initializes Frogger and enables controls
  */
+function startUp() {
+    if (active == false) {
+        active = true;
+        startBtnEl.style.display = "none";
+        initPlayer();
+        initLevel();
+    }
+}
+
+/**Effect of user trigger to move player up.*/
+function moveUp(event) {
+    if (player.style.gridRow != 1) { moveSprite(player, 0, -1) }
+    setSpriteDeg(player, 0);
+    if (player.style.gridRow == 1) { stageLvl(); }
+}
+
+/**Effect of user trigger to move player light.*/
+function moveLeft(event) {
+    if (player.style.gridColumn != 1) { moveSprite(player, -1, 0) }
+    setSpriteDeg(player, -90);
+}
+
+/**Effect of user trigger to move player right.*/
+function moveRight(event) {
+    if (player.style.gridColumn != 12) { moveSprite(player, 1, 0) }
+    setSpriteDeg(player, 90);
+}
+
+//DELTA
+/**Repeats commands distributed in half and quarters.*/
 function delta(){
     if (tick % 2 == 1) {
         if (tick == 1) {
@@ -158,23 +261,4 @@ function delta(){
     tick += tick == 4 ? (-3) : 1;
     setTimeout(delta, 250);
 }
-/** Initializes Frogger and enables controls
- */
-function startUp() {
-    if (active == false) {
-        active = true;
-        startBtnEl.style.display = "none";
-        initLevel();
-        initSprite(1, 1, frog, ["entity"], "player");
-        player = document.getElementById("player");
-        player.style.gridColumn = 6;
-        player.style.gridRow = 11;
-        console.log("player:", player)
-    }
-}
-
 delta();
-upBtnEl.addEventListener("click", () => {
-    console.log("Up!", typeof(playerY));
-    player.style.gridRow -= 1; // :)
-})
