@@ -93,7 +93,7 @@ function moveSprite(element, x, y) {
     element.style.gridRow -= -y;
 }
 
-/**Rotates a given element a specified angle in degrees.
+/**Sets a given element's rotation to a specified angle in degrees.
  * @param {Element} element the target HTML element
  * @param {Number}  deg     orientation to set element where 0 is up
 */
@@ -102,7 +102,7 @@ function setSpriteDeg(element, deg) {
 }
 
 //TILE FUNCTIONS
-/**Initializes road tiles on all rows specified by an array.
+/**Initializes appropriate road tile art on all rows specified by an array for level generation with initLevel.
  * @param {Array} y the rows where tiles will be generated
  */
 function initRoadRows(y) {
@@ -129,22 +129,27 @@ function initRoadRows(y) {
     })
 }
 
-/**Initializes water tiles on the row specified.
- * @param {Number} y the row where tiles will be generated
+/**Initializes water tiles on the row specified for level generation with initLevel.
+ * @param {Array} y the row where tiles will be generated
  */
 function initWaterRow(y) {
-    for (let i = 1; i <= 12; i++) {
-        initSprite(i, y, "water1.PNG", ["tile", "water"]);
-    }
+    y.forEach((element) => {
+        for (let i = 1; i <= 12; i++) {
+            initSprite(i, element, "water1.PNG", ["tile", "water"]);
+        }
+    });
 }
 
-/**Initializes water tiles on the row specified.
+/**Initializes grass tiles on the row specified for level generation with initLevel.
  * @param {Number} y the row where tiles will be generated
  */
 function initGrassRow(y) {
-    for (let i = 1; i <= 12; i++) {
-        initSprite(i, y, "grass1.PNG", ["tile", "grass"]);
-    }
+    y.forEach((element) => {
+        for (let i = 1; i <= 12; i++) {
+            initSprite(i, element, "grass1.PNG", ["tile", "grass"]);
+        }
+
+    });
 }
 
 //LEVEL FUNCTIONS
@@ -154,6 +159,8 @@ function initGrassRow(y) {
  */
 function initLevel() {
     var roadRows = []
+    var waterRows = []
+    var grassRows = []
     for (let i = 1; i <= 12; i++) {
         initSprite(i, 1, "grass4.PNG", ["tile"]);
     }
@@ -167,14 +174,16 @@ function initLevel() {
             roadRows.push(y);
             console.log(y + ": ROAD");
         } else if (totalRow * Math.random() <= roadRow + waterRow) {
-            initWaterRow(y);
+            waterRows.push(y);
             console.log(y + ": WATER");
         } else {
-            initGrassRow(y);
+            grassRows.push(y);
             console.log(y + ": GRASS");
         }
     }
+    initWaterRow(waterRows);
     initRoadRows(roadRows);
+    initGrassRow(grassRows);
     for (let i = 1; i <= 12; i++) {
         initSprite(i, 11, "grass3.PNG", ["tile"]);
     }
@@ -186,6 +195,9 @@ function initLevel() {
             neighbor.insertAdjacentElement("afterend", br);
         }
     }
+    console.log("road:", roadRows);
+    console.log("water:", waterRows);
+    console.log("grass:", grassRows);
     setPlayer();
 }
 
@@ -200,9 +212,9 @@ function clearLvl() {
 }
 
 function stageLvl() {
-    upBtnEl.removeEventListener('click', moveUp)
-    leftBtnEl.removeEventListener('click', moveLeft)
-    rightBtnEl.removeEventListener('click', moveRight)
+    upBtnEl.removeEventListener('click', moveUp);
+    leftBtnEl.removeEventListener('click', moveLeft);
+    rightBtnEl.removeEventListener('click', moveRight);
     clearLvl();
     setTimeout(initLevel, 1000);
     setPlayer;
@@ -232,41 +244,46 @@ function startUp() {
     }
 }
 
-/**Effect of user trigger to move player up.*/
+/**Effect of user trigger to move player up
+*/
 function moveUp(event) {
     if (player.style.gridRow != 1) { moveSprite(player, 0, -1) }
     setSpriteDeg(player, 0);
     if (player.style.gridRow == 1) { stageLvl(); }
 }
 
-/**Effect of user trigger to move player light.*/
+/**Effect of user trigger to move player light
+*/
 function moveLeft(event) {
     if (player.style.gridColumn != 1) { moveSprite(player, -1, 0) }
     setSpriteDeg(player, -90);
 }
 
-/**Effect of user trigger to move player right.*/
+/**Effect of user trigger to move player right.
+*/
 function moveRight(event) {
     if (player.style.gridColumn != 12) { moveSprite(player, 1, 0) }
     setSpriteDeg(player, 90);
 }
 
 //DELTA
-/**Repeats commands distributed in half and quarters.*/
+/**Repeats commands distributed in half and quarters.
+*/
 function delta(){
-    if (tick % 2 == 1) {
-        if (tick == 1) {
-            startBtnEl.innerHTML = startBtnEl.innerHTML == "" ? "START" : "";
-
-        } else { // 3
-
+    if (active == true) {
+        if (tick % 2 == 1) {
+            if (tick == 1) {
+            } else { // 3
+            }
+        } else {
+            if (tick == 2) {
+            } else { // 4
+            }
         }
     } else {
-        if (tick == 2) {
-
-        } else { // 4
-        
-        }
+        if (tick == 1) {
+            startBtnEl.innerHTML = startBtnEl.innerHTML == "" ? "START" : "";
+        }      
     }
     tick += tick == 4 ? (-3) : 1;
     setTimeout(delta, 250);
