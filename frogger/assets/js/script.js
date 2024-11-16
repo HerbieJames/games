@@ -1,17 +1,18 @@
 //DECLARATIONS
 const startBtnEl = document.getElementById("startBtnEl");
 const upBtnEl    = document.getElementById("btnUpEl");
+const downBtnEl  = document.getElementById("btnDownEl");
 const leftBtnEl  = document.getElementById("btnLeftEl");
 const rightBtnEl = document.getElementById("btnRightEl");
 const grid       = document.getElementById("gameDisplayEl");
+const gridXinit  = 1;
+const gridYinit  = 2;
 const gridX      = 12;
-const gridY      = 11;
+const gridY      = 12;
 let frog   = "frog1.PNG";
 let active = false;
 let tick   = 0;
 let player;
-let playerX;
-let playerY;
 
 //SPRITE FUNCTIONS
 
@@ -33,6 +34,45 @@ function nearestInDOM(x,y) {
         }
     }
     return element;
+}
+
+/**Returns all elements at a given co-ordinate on the grid.
+ * @param {Number} x coordinate in grid with left as 1
+ * @param {Number} y coordinate in grid with top as 1
+*/
+function allAtXY(x,y) {
+    var elements = [];
+    for (let i = 0; i <= grid.childElementCount; i++) {
+        var head = document.querySelector(`#gameDisplayEl :nth-child(${i})`);
+        if (head != undefined) {
+            var headX = head.style.gridColumn;
+            var headY = head.style.gridRow;
+            if ((headX == x)&&(headY == y)) {
+                elements.push(head);
+            }
+        }
+    }
+    return elements;
+}
+
+function gridHTML() {
+    for (let i = (gridYinit + 1); i <= gridY; i++) {
+        var neighbor = nearestInDOM(gridXinit,i);
+        if (neighbor != undefined) {
+            var br = document.createElement('br');
+            neighbor.insertAdjacentElement("beforebegin", br);
+        }
+    }
+    for (let j = gridYinit; j <= gridY; j++) {
+        for (let i = (gridXinit + 1); i <= gridX; i++) {
+            var neighbor = nearestInDOM(i,j);
+            if (neighbor != undefined) {
+                var cell = document.createElement('small');
+                cell.innerHTML = " ";
+                neighbor.insertAdjacentElement("beforebegin", cell);
+            }
+        }
+    }
 }
 
 /**Creates an image with src, id and class 
@@ -69,26 +109,26 @@ function initSprite(x, y, src, classes, id) {
     }
 }
 
-/**Sets the co-ordiated of a given element on the grid.
+/**Sets the co-ordiated of a given element on the grid and updates their position in the DOM.
  * @param {Element} element the target HTML element
  * @param {Number}  x       row position of element in grid
  * @param {Number}  y       column position of element in grid
 */
 function setSpriteXY(element, x, y) {
     var neighbor = nearestInDOM(x,y);
-    if (neighbor != undefined) { neighbor.after(element); }
+    if (neighbor != undefined) { neighbor.before(element); }
     element.style.gridColumn = x;
     element.style.gridRow = y;
 }
 
-/**Moves a given element on the grid a specified distance.
+/**Moves a given element on the grid a specified distance and updates their position in the DOM.
  * @param {Element} element the target HTML element
  * @param {Number}  x       row distance where positive is right
  * @param {Number}  y       column distance where posititve is down
 */
 function moveSprite(element, x, y) {
     var neighbor = nearestInDOM(element.style.gridColumn - -x,element.style.gridRow - -y);
-    if (neighbor != undefined) { neighbor.after(element); }
+    if (neighbor != undefined) { neighbor.before(element); }
     element.style.gridColumn -= -x;
     element.style.gridRow -= -y;
 }
@@ -109,20 +149,20 @@ function initRoadRows(y) {
     y.forEach((element) => {
         if (y.includes(element-1)) {
             if (y.includes(element+1)) {
-                for (let i = 1; i <= 12; i++) {
+                for (let i = gridXinit; i <= gridX; i++) {
                     initSprite(i, element, "road4.PNG", ["tile", "road"]);
                 }
             } else {
-                for (let i = 1; i <= 12; i++) {
+                for (let i = gridXinit; i <= gridX; i++) {
                     initSprite(i, element, "road3.PNG", ["tile", "road"]);
                 }
             }
         } else if (y.includes(element+1)) {
-            for (let i = 1; i <= 12; i++) {
+            for (let i = gridXinit; i <= gridX; i++) {
                 initSprite(i, element, "road2.PNG", ["tile", "road"]);
             }
         } else {
-            for (let i = 1; i <= 12; i++) {
+            for (let i = gridXinit; i <= gridX; i++) {
                 initSprite(i, element, "road1.PNG", ["tile", "road"]);
             }
         }
@@ -134,8 +174,13 @@ function initRoadRows(y) {
  */
 function initWaterRow(y) {
     y.forEach((element) => {
-        for (let i = 1; i <= 12; i++) {
-            initSprite(i, element, "water1.PNG", ["tile", "water"]);
+        for (let i = gridXinit; i <= gridX; i++) {
+            if (i*element % 2 == 0) {
+                initSprite(i, element, "water1.PNG", ["tile", "water"]);
+            } else {
+                initSprite(i, element, "water2.PNG", ["tile", "water"]);
+            }
+            
         }
     });
 }
@@ -144,9 +189,26 @@ function initWaterRow(y) {
  * @param {Number} y the row where tiles will be generated
  */
 function initGrassRow(y) {
+    var bugCell  = 0;
     y.forEach((element) => {
-        for (let i = 1; i <= 12; i++) {
-            initSprite(i, element, "grass1.PNG", ["tile", "grass"]);
+        var obstCell = 0;
+        for (let i = gridXinit; i <= gridX; i++) {
+            var above = allAtXY(i, (element - 1));
+            if ((((y.includes(element - 1) == false)&&(obstCell < gridX/2))||(careAhead(above) == false))
+                &&(Math.random() <= 0.375)) {
+                if (Math.random() <= 0.25) {
+                    initSprite(i, element, "rock1.PNG", ["tile", "obst"]);
+                } else {
+                    initSprite(i, element, "tree1.PNG", ["tile", "obst"]);
+                }
+                obstCell += 1
+            } else if ((bugCell != 1)&&(Math.random() <= 0.01)) {
+                initSprite(i, element, "fly1.PNG", ["tile", "bug"]);
+                bugCell += 1 
+                console.log("Bug at", "("+ i + "," + element + ")")
+            } else {
+                initSprite(i, element, "grass1.PNG", ["tile", "grass"]);
+            }
         }
 
     });
@@ -161,14 +223,13 @@ function initLevel() {
     var roadRows = []
     var waterRows = []
     var grassRows = []
-    for (let i = 1; i <= 12; i++) {
-        initSprite(i, 1, "grass4.PNG", ["tile"]);
+    for (let i = gridXinit; i <= gridX; i++) {
+        initSprite(i, gridYinit, "grass4.PNG", ["tile"]);
     }
-    console.log("1: end");
-    for (let y = 2; y < 11; y++) {
+    for (let y = (gridYinit + 1); y < gridY; y++) {
         var roadRow  = 9 - roadRows.length;
-        var waterRow = 9 - (document.querySelectorAll('#gameDisplayEl .water').length)/12;
-        var grassRow = 9 - (document.querySelectorAll('#gameDisplayEl .water').length)/12;
+        var waterRow = 9 - (document.querySelectorAll('#gameDisplayEl .water').length)/gridX;
+        var grassRow = 9 - (document.querySelectorAll('#gameDisplayEl .water').length)/gridX;
         var totalRow = roadRow + waterRow + grassRow;
         if (totalRow * Math.random() <= roadRow) {
             roadRows.push(y);
@@ -184,25 +245,23 @@ function initLevel() {
     initRoadRows(roadRows);
     initWaterRow(waterRows);
     initGrassRow(grassRows);
-    for (let i = 1; i <= 12; i++) {
-        initSprite(i, 11, "grass3.PNG", ["tile"]);
+    for (let i = gridXinit; i <= gridX; i++) {
+        initSprite(i, gridY, "grass3.PNG", ["tile"]);
     }
-    console.log("11: start");
-    for (let i = 1; i <= 10; i++) {
-        var neighbor = nearestInDOM(12,i);
-        if (neighbor != undefined) {
-            var br = document.createElement('br');
-            neighbor.insertAdjacentElement("afterend", br);
-        }
-    }
-    setPlayer();
+    gridHTML()
 }
 
 function clearLvl() {
     document.querySelectorAll(".tile").forEach((element) => {
         element.remove();
     });
+    document.querySelectorAll(".tile").forEach((element) => {
+        element.remove();
+    });
     document.querySelectorAll("br").forEach((element) => {
+        element.remove();
+    });
+    document.querySelectorAll("small").forEach((element) => {
         element.remove();
     });
     console.log("----CLEARED----")
@@ -210,22 +269,26 @@ function clearLvl() {
 
 function stageLvl() {
     upBtnEl.removeEventListener('click', moveUp);
+    downBtnEl.removeEventListener('click', moveDown);
     leftBtnEl.removeEventListener('click', moveLeft);
     rightBtnEl.removeEventListener('click', moveRight);
     clearLvl();
     setTimeout(initLevel, 1000);
-    setPlayer;
+    setTimeout(setPlayer, 1000);
 }
 
 //GAME FUNCTIONS
 function initPlayer() {
-    initSprite(1, 1, frog, ["entity"], "player");
+    initSprite(gridXinit, gridYinit, frog, null, "player");
     player = document.getElementById("player");
 }
 
+/**Sets the player's coordinates to the centre of the bottom row
+ */
 function setPlayer() {
-    setSpriteXY(player, 6, 11)
+    setSpriteXY(player, Math.floor(gridX/2), gridY)
     upBtnEl.addEventListener("click", moveUp);
+    downBtnEl.addEventListener("click", moveDown);
     leftBtnEl.addEventListener("click", moveLeft);
     rightBtnEl.addEventListener("click", moveRight);
 }
@@ -238,29 +301,74 @@ function startUp() {
         startBtnEl.style.display = "none";
         initPlayer();
         initLevel();
+        setPlayer();
     }
+}
+
+/**Returns whether a given coordinate on the grid can be moved to by the player.
+ * @param  {NodeList} ahead All elements at a given coordinate
+ * @return {Boolean}        Whether coordinate can be moved to
+*/
+function careAhead(ahead) {
+    var moveable = true;
+    console.log("AHEAD:", ahead);
+    ahead.forEach((element) => {
+        if (element.classList.contains("obst")) {
+            moveable = false;
+            console.log("OBSTACLE", ahead);
+        }
+    });
+    if (ahead.length == 0) {
+        moveable = false;
+        console.log("BOUNDARY", ahead);
+    }
+    return moveable;
 }
 
 /**Effect of user trigger to move player up
 */
 function moveUp(event) {
-    if (player.style.gridRow != 1) { moveSprite(player, 0, -1) }
+    var ahead = allAtXY(player.style.gridColumn, (player.style.gridRow - 1));
     setSpriteDeg(player, 0);
-    if (player.style.gridRow == 1) { stageLvl(); }
+    if (careAhead(ahead)) { moveSprite(player, 0, -1); }
+    if (player.style.gridRow == gridYinit) { stageLvl(); }
+}
+
+/**Effect of user trigger to move player up
+*/
+function moveDown(event) {
+    var ahead = allAtXY(player.style.gridColumn, (player.style.gridRow - -1));
+    setSpriteDeg(player, 180);
+    if (careAhead(ahead)) { moveSprite(player, 0, 1); }
 }
 
 /**Effect of user trigger to move player light
 */
 function moveLeft(event) {
-    if (player.style.gridColumn != 1) { moveSprite(player, -1, 0) }
+    var ahead = allAtXY((player.style.gridColumn - 1), player.style.gridRow);
     setSpriteDeg(player, -90);
+    if (careAhead(ahead)) { moveSprite(player, -1, 0); }
 }
 
 /**Effect of user trigger to move player right.
 */
 function moveRight(event) {
-    if (player.style.gridColumn != 12) { moveSprite(player, 1, 0) }
+    var ahead = allAtXY((player.style.gridColumn - -1), player.style.gridRow);
     setSpriteDeg(player, 90);
+    if (careAhead(ahead)) { moveSprite(player, 1, 0); }
+}
+
+function toggleWater() {
+    var water1PNG = "/frogger/assets/images/water1.PNG"
+    var water2PNG = "/frogger/assets/images/water2.PNG"
+    var water1tiles = grid.querySelectorAll(`img[src='${water1PNG}']`)
+    var water2tiles = grid.querySelectorAll(`img[src='${water2PNG}']`)
+    water1tiles.forEach((element) => {
+        element.src = water2PNG;
+    });
+    water2tiles.forEach((element) => {
+        element.src = water1PNG;
+    });
 }
 
 //DELTA
@@ -269,6 +377,7 @@ function moveRight(event) {
 function delta(){
     if (active == true) {
         if (tick % 2 == 1) {
+        toggleWater();
             if (tick == 1) {
             } else { // 3
             }

@@ -1,3 +1,7 @@
+small {
+    display: none;
+}
+
 .area {
     background-color: aquamarine;
     border: 1px solid black;
@@ -15,7 +19,7 @@
 
 .game-window {
     position: relative;
-    aspect-ratio: 12 / 11;
+    aspect-ratio: 12 / 12;
     display: flex;
 }
 
@@ -32,7 +36,7 @@
 }
 
 #gameDisplayEl {
-    height: 352px;
+    height: 384px;
     width: 384px;
     margin: auto;
     display: grid;
@@ -51,8 +55,10 @@
 
 .pad-dirs {
     flex: 1 1 0;
+    display: flex;
+    flex-flow: row;
     height: 100%;
-    padding: 5%;
+    padding: 1%;
 }
 
 .pad-main {
@@ -61,8 +67,8 @@
 }
 
 .button {
-    height: 35%;
-    width: 100%;
+    flex: 1 1 0;
+    padding: 1%;
 }
 
 .sprite {
@@ -75,12 +81,8 @@
     z-index: 0;
 }
 
-.entity {
-    z-index: 1;
-}
-
 #player {
-    z-index: 2;
+    z-index: 1;
 }
 
 @media screen and (max-width:388px){
