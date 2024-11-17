@@ -1,4 +1,5 @@
-//DECLARATIONS
+//  DECLARATIONS
+//  TOOLING DECLARATIONS
 const startBtnEl = document.getElementById("startBtnEl");
 const upBtnEl    = document.getElementById("btnUpEl");
 const downBtnEl  = document.getElementById("btnDownEl");
@@ -12,12 +13,11 @@ const gridY      = 12;
 const imgRoot    = "/frogger/assets/images/";
 let playerImg    = "frog1.PNG";
 let player;
-
+//  FROGGER DECLARATIONS
 let active = false;
 let tick   = 0;
 
-//SPRITE FUNCTIONS
-
+//  TOOLING FUNCTIONS
 /**Returns the element on or closest ahead of a given co-ordinate on the grid.
  * @param {Number} x coordinate in grid with left as 1
  * @param {Number} y coordinate in grid with top as 1
@@ -57,6 +57,9 @@ function allAtXY(x,y) {
     return elements;
 }
 
+/**Creats linebreaks between rows in grid and spaces (<small>" "</small>) between cells
+ * for non-CSS functionality
+ */
 function gridHTML() {
     for (let i = (gridYinit + 1); i <= gridY; i++) {
         var neighbor = nearestInDOM(gridXinit,i);
@@ -143,7 +146,43 @@ function setSpriteDeg(element, deg) {
     element.style.transform = `rotate(${deg}deg)`;
 }
 
-//TILE FUNCTIONS
+/**Returns whether a given coordinate on the grid can be moved to by the player.
+ * @param  {NodeList} ahead All elements at a given coordinate
+ * @return {Boolean}        Whether coordinate can be moved to
+*/
+function careAhead(ahead) {
+    var moveable = true;
+    ahead.forEach((element) => {
+        if (element.classList.contains("obst")) {
+            moveable = false;
+            console.log("OBSTACLE", ahead);
+        }
+    });
+    if (ahead.length == 0) {
+        moveable = false;
+        console.log("BOUNDARY", ahead);
+    }
+    return moveable;
+}
+
+/**Creates a sprite with id "player" and src playerImg.
+ */
+function initPlayer() {
+    initSprite(gridXinit, gridYinit, playerImg, null, "player");
+    player = document.getElementById("player");
+}
+
+/**Sets the player's coordinates to the centre of the bottom row
+ */
+function setPlayer() {
+    setSpriteXY(player, Math.floor(gridX/2), gridY)
+    upBtnEl.addEventListener("click", moveUp);
+    downBtnEl.addEventListener("click", moveDown);
+    leftBtnEl.addEventListener("click", moveLeft);
+    rightBtnEl.addEventListener("click", moveRight);
+}
+
+//FROGGER TILING FUNCTIONS
 /**Initializes appropriate road tile art on all rows specified by an array for level generation with initLevel.
  * @param {Array} y the rows where tiles will be generated
  */
@@ -194,14 +233,13 @@ function initGrassRow(y) {
         var obstCell = 0;
         for (let i = gridXinit; i <= gridX; i++) {
             var above = allAtXY(i, (element - 1));
-            if ((((y.includes(element - 1) == false)&&(obstCell < gridX/2))||(careAhead(above) == false))
-                &&(Math.random() <= 0.375)) {
-                if (Math.random() <= 0.25) {
-                    initSprite(i, element, "rock1.PNG", ["tile", "obst"]);
-                } else {
-                    initSprite(i, element, "tree1.PNG", ["tile", "obst"]);
-                }
-                obstCell += 1
+            var obstValid = (!y.includes(element - 1) && (obstCell < gridX/2)) || (!careAhead(above));
+            if (obstValid && (Math.random() <= 0.09375)) {
+                initSprite(i, element, "rock1.PNG", ["tile", "obst"]);
+                obstCell += 1;
+            } else if (obstValid && Math.random() <= 0.28125) {
+                initSprite(i, element, "tree1.PNG", ["tile", "obst"]);
+                obstCell += 1;
             } else if ((bugCell != 1)&&(Math.random() <= 0.01)) {
                 initSprite(i, element, "fly1.PNG", ["tile", "bug"]);
                 bugCell += 1 
@@ -214,8 +252,37 @@ function initGrassRow(y) {
     });
 }
 
-//LEVEL FUNCTIONS
+/** Toggles the image of water sprites for animation.
+ */
+function toggleWater() {
+    var water1PNG = imgRoot + "water1.PNG"
+    var water2PNG = imgRoot + "water2.PNG"
+    var water1tiles = grid.querySelectorAll(`img[src='${water1PNG}']`)
+    var water2tiles = grid.querySelectorAll(`img[src='${water2PNG}']`)
+    water1tiles.forEach((element) => {
+        element.src = water2PNG;
+    });
+    water2tiles.forEach((element) => {
+        element.src = water1PNG;
+    });
+}
 
+/** Toggles the image of fly sprites for animation.
+ */
+function toggleFly() {
+    var fly1PNG = imgRoot + "fly1.PNG"
+    var fly2PNG = imgRoot + "fly2.PNG"
+    var fly1tiles = grid.querySelectorAll(`img[src='${fly1PNG}']`)
+    var fly2tiles = grid.querySelectorAll(`img[src='${fly2PNG}']`)
+    fly1tiles.forEach((element) => {
+        element.src = fly2PNG;
+    });
+    fly2tiles.forEach((element) => {
+        element.src = fly1PNG;
+    });
+}
+
+//LEVEL FUNCTIONS
 /**Initializes level by randomly allocating certain
  * types of tiles to certain rows, then initializing them.
  */
@@ -251,10 +318,9 @@ function initLevel() {
     gridHTML()
 }
 
+/**Deletes all tile elements, pagebreaks and cell spaces.
+ */
 function clearLvl() {
-    document.querySelectorAll(".tile").forEach((element) => {
-        element.remove();
-    });
     document.querySelectorAll(".tile").forEach((element) => {
         element.remove();
     });
@@ -278,53 +344,6 @@ function stageLvl() {
 }
 
 //GAME FUNCTIONS
-function initPlayer() {
-    initSprite(gridXinit, gridYinit, playerImg, null, "player");
-    player = document.getElementById("player");
-}
-
-/**Sets the player's coordinates to the centre of the bottom row
- */
-function setPlayer() {
-    setSpriteXY(player, Math.floor(gridX/2), gridY)
-    upBtnEl.addEventListener("click", moveUp);
-    downBtnEl.addEventListener("click", moveDown);
-    leftBtnEl.addEventListener("click", moveLeft);
-    rightBtnEl.addEventListener("click", moveRight);
-}
-
-/** Initializes Frogger and enables controls
- */
-function startUp() {
-    if (active == false) {
-        active = true;
-        startBtnEl.style.display = "none";
-        initPlayer();
-        initLevel();
-        setPlayer();
-    }
-}
-
-/**Returns whether a given coordinate on the grid can be moved to by the player.
- * @param  {NodeList} ahead All elements at a given coordinate
- * @return {Boolean}        Whether coordinate can be moved to
-*/
-function careAhead(ahead) {
-    var moveable = true;
-    console.log("AHEAD:", ahead);
-    ahead.forEach((element) => {
-        if (element.classList.contains("obst")) {
-            moveable = false;
-            console.log("OBSTACLE", ahead);
-        }
-    });
-    if (ahead.length == 0) {
-        moveable = false;
-        console.log("BOUNDARY", ahead);
-    }
-    return moveable;
-}
-
 /**Effect of user trigger to move player up
 */
 function moveUp(event) {
@@ -358,32 +377,17 @@ function moveRight(event) {
     if (careAhead(ahead)) { moveSprite(player, 1, 0); }
 }
 
-function toggleWater() {
-    var water1PNG = imgRoot + "water1.PNG"
-    var water2PNG = imgRoot + "water2.PNG"
-    var water1tiles = grid.querySelectorAll(`img[src='${water1PNG}']`)
-    var water2tiles = grid.querySelectorAll(`img[src='${water2PNG}']`)
-    water1tiles.forEach((element) => {
-        element.src = water2PNG;
-    });
-    water2tiles.forEach((element) => {
-        element.src = water1PNG;
-    });
+/**Initializes Game
+ */
+function startUp() {
+    if (active == false) {
+        active = true;
+        startBtnEl.style.display = "none";
+        initPlayer();
+        initLevel();
+        setPlayer();
+    }
 }
-
-function toggleFly() {
-    var fly1PNG = imgRoot + "fly1.PNG"
-    var fly2PNG = imgRoot + "fly2.PNG"
-    var fly1tiles = grid.querySelectorAll(`img[src='${fly1PNG}']`)
-    var fly2tiles = grid.querySelectorAll(`img[src='${fly2PNG}']`)
-    fly1tiles.forEach((element) => {
-        element.src = fly2PNG;
-    });
-    fly2tiles.forEach((element) => {
-        element.src = fly1PNG;
-    });
-}
-
 
 //DELTA
 /**Repeats commands distributed in half and quarters.
