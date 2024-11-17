@@ -282,7 +282,7 @@ function toggleFly() {
     });
 }
 
-//LEVEL FUNCTIONS
+//FROGGER LEVEL FUNCTIONS
 /**Initializes level by randomly allocating certain
  * types of tiles to certain rows, then initializing them.
  */
@@ -343,7 +343,7 @@ function stageLvl() {
     setTimeout(setPlayer, 1000);
 }
 
-//GAME FUNCTIONS
+//INPUT FUNCTIONS
 /**Effect of user trigger to move player up
 */
 function moveUp(event) {
@@ -377,6 +377,7 @@ function moveRight(event) {
     if (careAhead(ahead)) { moveSprite(player, 1, 0); }
 }
 
+// --TOOLING SCRIPT--
 /**Initializes Game
  */
 function startUp() {
@@ -389,7 +390,6 @@ function startUp() {
     }
 }
 
-//DELTA
 /**Repeats commands distributed in half and quarters.
 */
 function delta(){
