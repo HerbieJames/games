@@ -9,10 +9,12 @@ const gridXinit  = 1;
 const gridYinit  = 2;
 const gridX      = 12;
 const gridY      = 12;
-let frog   = "frog1.PNG";
+const imgRoot    = "/frogger/assets/images/";
+let playerImg    = "frog1.PNG";
+let player;
+
 let active = false;
 let tick   = 0;
-let player;
 
 //SPRITE FUNCTIONS
 
@@ -80,7 +82,7 @@ function gridHTML() {
  * appropriate position in the DOM
  * @param {Number} x       column position of image in grid
  * @param {Number} y       row position of image in grid
- * @param {String} src     src of image (in "/frogger/assets/images/")
+ * @param {String} src     src of image (in imgRoot)
  * @param {Array}  classes Array of strings; classes for image to assume
  * @param {String} id      id for image to assume
 */
@@ -92,7 +94,7 @@ function initSprite(x, y, src, classes, id) {
     img.style.gridColumn = x;
     img.style.gridRow    = y;
     if (src != undefined) { 
-        src = "/frogger/assets/images/".concat(src);
+        src = imgRoot.concat(src);
         img.src = src;
     }
     if (classes != undefined) { 
@@ -147,26 +149,24 @@ function setSpriteDeg(element, deg) {
  */
 function initRoadRows(y) {
     y.forEach((element) => {
-        if (y.includes(element-1)) {
-            if (y.includes(element+1)) {
-                for (let i = gridXinit; i <= gridX; i++) {
-                    initSprite(i, element, "road4.PNG", ["tile", "road"]);
-                }
-            } else {
-                for (let i = gridXinit; i <= gridX; i++) {
-                    initSprite(i, element, "road3.PNG", ["tile", "road"]);
-                }
-            }
-        } else if (y.includes(element+1)) {
-            for (let i = gridXinit; i <= gridX; i++) {
-                initSprite(i, element, "road2.PNG", ["tile", "road"]);
-            }
-        } else {
+        if (!y.includes(element-1) && !y.includes(element+1)) {
             for (let i = gridXinit; i <= gridX; i++) {
                 initSprite(i, element, "road1.PNG", ["tile", "road"]);
             }
+        } else if (!y.includes(element-1)) {
+            for (let i = gridXinit; i <= gridX; i++) {
+                initSprite(i, element, "road2.PNG", ["tile", "road"]);
+            }
+        } else if (!y.includes(element+1)) {
+            for (let i = gridXinit; i <= gridX; i++) {
+                initSprite(i, element, "road3.PNG", ["tile", "road"]);
+            }
+        } else {
+            for (let i = gridXinit; i <= gridX; i++) {
+                initSprite(i, element, "road4.PNG", ["tile", "road"]);
+            }
         }
-    })
+    });
 }
 
 /**Initializes water tiles on the row specified for level generation with initLevel.
@@ -279,7 +279,7 @@ function stageLvl() {
 
 //GAME FUNCTIONS
 function initPlayer() {
-    initSprite(gridXinit, gridYinit, frog, null, "player");
+    initSprite(gridXinit, gridYinit, playerImg, null, "player");
     player = document.getElementById("player");
 }
 
@@ -359,8 +359,8 @@ function moveRight(event) {
 }
 
 function toggleWater() {
-    var water1PNG = "/frogger/assets/images/water1.PNG"
-    var water2PNG = "/frogger/assets/images/water2.PNG"
+    var water1PNG = imgRoot + "water1.PNG"
+    var water2PNG = imgRoot + "water2.PNG"
     var water1tiles = grid.querySelectorAll(`img[src='${water1PNG}']`)
     var water2tiles = grid.querySelectorAll(`img[src='${water2PNG}']`)
     water1tiles.forEach((element) => {
@@ -371,17 +371,32 @@ function toggleWater() {
     });
 }
 
+function toggleFly() {
+    var fly1PNG = imgRoot + "fly1.PNG"
+    var fly2PNG = imgRoot + "fly2.PNG"
+    var fly1tiles = grid.querySelectorAll(`img[src='${fly1PNG}']`)
+    var fly2tiles = grid.querySelectorAll(`img[src='${fly2PNG}']`)
+    fly1tiles.forEach((element) => {
+        element.src = fly2PNG;
+    });
+    fly2tiles.forEach((element) => {
+        element.src = fly1PNG;
+    });
+}
+
+
 //DELTA
 /**Repeats commands distributed in half and quarters.
 */
 function delta(){
     if (active == true) {
         if (tick % 2 == 1) {
-        toggleWater();
+            toggleWater();
             if (tick == 1) {
             } else { // 3
             }
         } else {
+            toggleFly()
             if (tick == 2) {
             } else { // 4
             }
@@ -394,4 +409,5 @@ function delta(){
     tick += tick == 4 ? (-3) : 1;
     setTimeout(delta, 250);
 }
+
 delta();
