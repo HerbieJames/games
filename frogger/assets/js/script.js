@@ -16,6 +16,8 @@ let player;
 //  FROGGER DECLARATIONS
 let active = false;
 let tick   = 0;
+let score  = 0;
+let fly;
 
 //  TOOLING FUNCTIONS
 /**Returns the element on or closest ahead of a given co-ordinate on the grid.
@@ -86,8 +88,9 @@ function gridHTML() {
  * @param {Number} x       column position of image in grid
  * @param {Number} y       row position of image in grid
  * @param {String} src     src of image (in imgRoot)
- * @param {Array}  classes Array of strings; classes for image to assume
+ * @param {Array } classes Array of strings; classes for image to assume
  * @param {String} id      id for image to assume
+ * @return {Node }         the generated element
 */
 function initSprite(x, y, src, classes, id) {
     var img = document.createElement('img');
@@ -112,6 +115,7 @@ function initSprite(x, y, src, classes, id) {
     if (id  !== undefined) {
         console.log('initSprite(): "#'+id, "created before", neighbor+'"', img);
     }
+    return img;
 }
 
 /**Sets the co-ordiated of a given element on the grid and updates their position in the DOM.
@@ -147,22 +151,24 @@ function setSpriteDeg(element, deg) {
 }
 
 /**Returns whether a given coordinate on the grid can be moved to by the player.
- * @param  {NodeList} ahead All elements at a given coordinate
- * @return {Boolean}        Whether coordinate can be moved to
+ * @param  {NodeList} ahead    All elements at a given coordinate
+ * @return {Object}            An array of boolean elements named "moveable", "score" and "death".
 */
 function careAhead(ahead) {
     var moveable = true;
-    ahead.forEach((element) => {
-        if (element.classList.contains("obst")) {
-            moveable = false;
-            console.log("OBSTACLE", ahead);
-        }
-    });
+    var death    = false;
+    var score    = false;
     if (ahead.length == 0) {
         moveable = false;
         console.log("BOUNDARY", ahead);
+    } else {
+        ahead.forEach((element) => {
+            if (element.classList.contains("obst"))  { moveable = false; }
+            if (element.classList.contains("point")) { score    = true;  }
+            if (element.classList.contains("hurts")) { death    = true;  }
+        });
     }
-    return moveable;
+    return {moveable: moveable, death: death, score: score};
 }
 
 /**Creates a sprite with id "player" and src playerImg.
@@ -180,9 +186,21 @@ function setPlayer() {
     downBtnEl.addEventListener("click", moveDown);
     leftBtnEl.addEventListener("click", moveLeft);
     rightBtnEl.addEventListener("click", moveRight);
+    player.src = imgRoot + playerImg;
+}
+
+function killPlayer() {
+    upBtnEl.removeEventListener('click', moveUp);
+    downBtnEl.removeEventListener('click', moveDown);
+    leftBtnEl.removeEventListener('click', moveLeft);
+    rightBtnEl.removeEventListener('click', moveRight);
+    console.log("player death")
+    player.src = imgRoot + "frog3.PNG";
+    setTimeout(setPlayer, 1000);
 }
 
 //FROGGER TILING FUNCTIONS
+
 /**Initializes appropriate road tile art on all rows specified by an array for level generation with initLevel.
  * @param {Array} y the rows where tiles will be generated
  */
@@ -214,10 +232,10 @@ function initRoadRows(y) {
 function initWaterRow(y) {
     y.forEach((element) => {
         for (let i = gridXinit; i <= gridX; i++) {
-            if (i*element % 2 == 0) {
-                initSprite(i, element, "water1.PNG", ["tile", "water"]);
+            if ((i + (gridX-1)*element) % 2 == 0) {
+                initSprite(i, element, "water1.PNG", ["tile", "water", "hurts"]);
             } else {
-                initSprite(i, element, "water2.PNG", ["tile", "water"]);
+                initSprite(i, element, "water2.PNG", ["tile", "water", "hurts"]);
             }
             
         }
@@ -233,7 +251,7 @@ function initGrassRow(y) {
         var obstCell = 0;
         for (let i = gridXinit; i <= gridX; i++) {
             var above = allAtXY(i, (element - 1));
-            var obstValid = (!y.includes(element - 1) && (obstCell < gridX/2)) || (!careAhead(above));
+            var obstValid = (!y.includes(element - 1) && (obstCell < gridX/2)) || (!careAhead(above).moveable);
             if (obstValid && (Math.random() <= 0.09375)) {
                 initSprite(i, element, "rock1.PNG", ["tile", "obst"]);
                 obstCell += 1;
@@ -241,9 +259,8 @@ function initGrassRow(y) {
                 initSprite(i, element, "tree1.PNG", ["tile", "obst"]);
                 obstCell += 1;
             } else if ((bugCell != 1)&&(Math.random() <= 0.01)) {
-                initSprite(i, element, "fly1.PNG", ["tile", "bug"]);
-                bugCell += 1 
-                console.log("Bug at", "("+ i + "," + element + ")")
+                fly = initSprite(i, element, "fly1.PNG", ["tile", "point"], "fly");
+                bugCell += 1;
             } else {
                 initSprite(i, element, "grass1.PNG", ["tile", "grass"]);
             }
@@ -343,13 +360,22 @@ function stageLvl() {
     setTimeout(setPlayer, 1000);
 }
 
+function eatFly() {
+    score += 25
+    console.log("25 Points! Score:", score);
+}
+
 //INPUT FUNCTIONS
 /**Effect of user trigger to move player up
 */
 function moveUp(event) {
     var ahead = allAtXY(player.style.gridColumn, (player.style.gridRow - 1));
     setSpriteDeg(player, 0);
-    if (careAhead(ahead)) { moveSprite(player, 0, -1); }
+    if (careAhead(ahead).moveable) {
+        moveSprite(player, 0, -1);
+        if (careAhead(ahead).death) {  killPlayer(); }
+        else if (careAhead(ahead).score) { eatFly(); }
+    }
     if (player.style.gridRow == gridYinit) { stageLvl(); }
 }
 
@@ -358,7 +384,11 @@ function moveUp(event) {
 function moveDown(event) {
     var ahead = allAtXY(player.style.gridColumn, (player.style.gridRow - -1));
     setSpriteDeg(player, 180);
-    if (careAhead(ahead)) { moveSprite(player, 0, 1); }
+    if (careAhead(ahead).moveable) {
+        moveSprite(player, 0, 1);
+        if (careAhead(ahead).death) {  killPlayer(); }
+        else if (careAhead(ahead).score) { eatFly(); }
+    }
 }
 
 /**Effect of user trigger to move player light
@@ -366,7 +396,11 @@ function moveDown(event) {
 function moveLeft(event) {
     var ahead = allAtXY((player.style.gridColumn - 1), player.style.gridRow);
     setSpriteDeg(player, -90);
-    if (careAhead(ahead)) { moveSprite(player, -1, 0); }
+    if (careAhead(ahead).moveable) {
+        moveSprite(player, -1, 0);
+        if (careAhead(ahead).death) {  killPlayer(); }
+        else if (careAhead(ahead).score) { eatFly(); }
+    }
 }
 
 /**Effect of user trigger to move player right.
@@ -374,7 +408,11 @@ function moveLeft(event) {
 function moveRight(event) {
     var ahead = allAtXY((player.style.gridColumn - -1), player.style.gridRow);
     setSpriteDeg(player, 90);
-    if (careAhead(ahead)) { moveSprite(player, 1, 0); }
+    if (careAhead(ahead).moveable) {
+        moveSprite(player, 1, 0);
+        if (careAhead(ahead).death) {  killPlayer(); }
+        else if (careAhead(ahead).score) { eatFly(); }
+    }
 }
 
 // --TOOLING SCRIPT--
@@ -384,21 +422,14 @@ function startUp() {
     if (active == false) {
         active = true;
         startBtnEl.style.display = "none";
-        var menu = ["score", "name"]
-        menu.forEach((element) => {
-            var txt = document.createElement('p');
-            txt.style.color = "white";
-            txt.classList.add(`${element}-area`);
-            txt.style.gridRow    = 1;
-            txt.id = `${element}El`;
-            grid.appendChild(txt);
-        });
-        var score = document.getElementById("scoreEl");
-        var name = document.getElementById("nameEl");
-        score.innerHTML = "000000";
-        score.style.gridColumn = 1;
-        name.innerHTML = "";
-        name.style.gridColumn = gridX;
+        var txt = document.createElement('p');
+        txt.style.color = "white";
+        txt.classList.add(`score-area`);
+        txt.style.gridRow    = 1;
+        txt.id = `scoreEl`;
+        txt.innerHTML = "000000";
+        txt.style.gridColumn = 1;
+        grid.appendChild(txt);
         initPlayer();
         initLevel();
         setPlayer();
