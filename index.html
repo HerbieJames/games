@@ -5,42 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arcadia - Game Template</title>
     <!--Styles-->
-    <link rel="stylesheet" href="./frogger/assets/css/styles.css">
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./assets/css/styles.css">
     <!--Favicon-->
     <link rel="icon" type="image/x-icon" href="/frogger/assets/images/frog1.PNG">
 </head>
-<!--Frogger-->
 <body>
+    <!-- Shell HTML-->
     <h4>Template Game Block Content</h4>
-    <div class = "area game-score">
-
-    </div>
-    <!--Game Area (Block)-->
-    <div class = "area game" role = "main">
-        <div class = "area game-window">
-            <button id = "startBtnEl" onclick="startUp()">START</button>
-            <div id = "gameDisplayEl">
-
-            </div>
+    <div class = "area game-machine">
+        <div class = "area game-score">
         </div>
-        <div class = "area game-pad">
-            <div id = "gameControllerEl">
-                <div class = "area pad-dirs">
-                    <button class= "button area" id="btnLeftEl">←, A</button>
-                    <div style="display:flex; flex-flow:column;">
-                        <button class= "button area" id="btnUpEl">↑, W, Space</button>
-                        <button class= "button area" id="btnDownEl">↓, S</button>
+        <div id = "gameEl" class = "area" role = "main">
+            <div class = "area game-window">
+                <button id = "startBtnEl" onclick="tryStartUp()">START</button>
+                <div id = "gameDisplayEl">
+                </div>
+            </div>
+            <div class = "area game-pad">
+                <!--Frogger Controls (Block)-->
+                <link rel="stylesheet" href="./frogger/assets/css/styles.css">
+                <div id = "gameControllerEl">
+                    <div class = "area pad-dirs">
+                        <button class= "button area" id="btnLeftEl">←, A</button>
+                        <div style="display:flex; flex-flow:column;">
+                            <button class= "button area" id="btnUpEl">↑, W, Space</button>
+                            <button class= "button area" id="btnDownEl">↓, S</button>
+                        </div>
+                        <button class= "button area" id="btnRightEl">→, D</button>
                     </div>
-                    <button class= "button area" id="btnRightEl">→, D</button>
+                    <div class = "area pad-main">
+                    </div>
                 </div>
-                <div class = "area pad-main">
-                </div>
+                <script src="./frogger/assets/js/script.js"></script>
+                <!--Frogger Controls (Block) End-->
             </div>
         </div>
     </div>
-
-    <!--Scripts-->
-    <script src="./frogger/assets/js/script.js"></script>
+    <script>
+        function tryStartUp() {
+            try { startUp(); } 
+            catch { 
+                console.log("Unable to Load");
+                document.getElementById("startBtnEl").style.backgroundColor = "black";
+            }
+        }
+    </script>
+    <!--Shell HTML End-->
 </body>
 </html>
