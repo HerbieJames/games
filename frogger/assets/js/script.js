@@ -384,6 +384,21 @@ function startUp() {
     if (active == false) {
         active = true;
         startBtnEl.style.display = "none";
+        var menu = ["score", "name"]
+        menu.forEach((element) => {
+            var txt = document.createElement('p');
+            txt.style.color = "white";
+            txt.classList.add(`${element}-area`);
+            txt.style.gridRow    = 1;
+            txt.id = `${element}El`;
+            grid.appendChild(txt);
+        });
+        var score = document.getElementById("scoreEl");
+        var name = document.getElementById("nameEl");
+        score.innerHTML = "000000";
+        score.style.gridColumn = 1;
+        name.innerHTML = "";
+        name.style.gridColumn = gridX;
         initPlayer();
         initLevel();
         setPlayer();
