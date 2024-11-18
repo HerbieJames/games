@@ -160,7 +160,6 @@ function setSpriteDeg(element, deg) {
  * @return {Object}         the ".x" and ".y" values.
 */
 function getSpriteXY(element) {
-    console.log(typeof(element), element)
     var x = element.style.gridColumn
     var y = element.style.gridRow
     return {x: x, y :y}
@@ -235,8 +234,8 @@ function initRoadRows(y) {
         var carIndex = element.toString();
         Object.defineProperty(carRows, carIndex, { 
             value : {
-                "length" : Math.ceil(Math.random()*4),
-                "gap" : Math.ceil(Math.random()*5)
+                "len" : Math.ceil(Math.random()*3),
+                "gap" : Math.floor(Math.random()*3)
             }
         });
         if (!y.includes(element-1) && !y.includes(element+1)) {
@@ -268,8 +267,8 @@ function initWaterRow(y) {
         var logIndex = element.toString();
         Object.defineProperty(logRows, logIndex, { 
             value : {
-                "length" : Math.ceil(Math.random()*4),
-                "gap" : Math.ceil(Math.random()*5)
+                "len" : Math.ceil(Math.random()*3),
+                "gap" : Math.floor(Math.random()*3)
             }
         });
         for (let i = gridXinit; i <= gridX; i++) {
@@ -375,6 +374,8 @@ function initLevel() {
     for (let i = gridXinit; i <= gridX; i++) {
         initSprite(i, gridY, "grass3.PNG", ["tile"]);
     }
+    active = true;
+    tick = 1;
     gridHTML()
 }
 
@@ -394,6 +395,7 @@ function clearLvl() {
 }
 
 function stageLvl() {
+    active = false;
     upBtnEl.removeEventListener('click', moveUp);
     downBtnEl.removeEventListener('click', moveDown);
     leftBtnEl.removeEventListener('click', moveLeft);
@@ -401,6 +403,7 @@ function stageLvl() {
     clearLvl();
     addScore(1000);
     setTimeout(initLevel, 1000);
+    setTimeout(setPlayer, 1000);
     setTimeout(setPlayer, 1000);
 }
 
@@ -419,40 +422,65 @@ function eatFly() {
     fly.remove();
 }
 
-function updateLog(log) {
+function moveLog(log) {
+    var playerOn = false;
     var elX = getSpriteXY(log).x;
-    if (elX == 1) { log.remove()
+    var elY = getSpriteXY(log).y;
+    if ((getSpriteXY(player).x == elX) && (getSpriteXY(player).y == elY)){
+        var playerOn = true;
+    }
+    if (getSpriteXY(log).x == 1) {
+        log.remove()
+        if (playerOn){ killPlayer(); }
     } else {
         moveSprite(log, -1, 0);
-        //build logs
-        var buildLog = false;
+        if (playerOn) { moveSprite(player, -1, 0) }
+        elX = getSpriteXY(log).x;
+        elY = getSpriteXY(log).y;
         if (elX == (gridX-1)){
-
+            if (log.classList.contains("log1")) {
+                if (logRows[elY].len > 2) {
+                    initSprite(gridX, elY, "log2.PNG", ["tile", "log", "log2"]);
+                } else {
+                    initSprite(gridX, elY, "log3.PNG", ["tile", "log", "log3"]);
+                }
+            } else if (log.classList.contains("log2")) {
+                initSprite(gridX, elY, "log3.PNG", ["tile", "log", "log3"]);
+                logRows[elY].gap = Math.floor(4*Math.random()) + 1;
+            }
         }
-        //build logs
     }
 }
 
-function moveLogs() {
+function updateLogs() {
     waterRows.forEach((y) => {
         var logSprites = document.getElementsByClassName("log");
-        var logLength  = logRows[y].length;
-        var logGap     = logRows[y].gap;
-        var moveRow    = false;
         var logsInRow  = [];
-        var logsToGo   = [];
+        var logAtTop   = false;
+        var moveRow    = false;
         for (var i = 0; i < logSprites.length; i++) {
-            if (getSpriteXY(logSprites[i]).y == y){
-                logsInRow.push(logSprites[i]);
-            }
+            if (getSpriteXY(logSprites[i]).y == y){ logsInRow.push(logSprites[i]); }
         }
-        if (logLength == 1)                            { moveRow = true; 
-        } else if ((logLength < 4) && (tick % 2 == 1)) { moveRow = true;
-        } else if (tick == 1)                          { moveRow = true; }
+        if (logRows[y].len == 1)                             { moveRow = true; 
+        } else if ((logRows[y].len == 2) && (tick % 2 == 1)) { moveRow = true;
+        } else if (tick == 1)                                { moveRow = true;
+        }
         if (moveRow == true) {
-            //Move Logs
-            logsInRow.forEach((element) => { updateLog(element); });
-            //Move Logs End
+            logsInRow.forEach((element) => { moveLog(element); });
+            allAtXY(gridX, y).forEach((element) => {
+                if (element.classList.contains("log")){ logAtTop = true;}
+            });
+            if (logAtTop == false) {
+                if (logRows[y].gap > 0) {
+                    logRows[y].gap -= 1;
+                } else if (logRows[y].len != 1) {
+                    initSprite(gridX, y, "log1.PNG", ["tile", "log", "log1"]);
+                    logRows[y].gap = Math.floor(4*Math.random()) + 1;
+                } else {
+                    initSprite(gridX, y, "log4.PNG", ["tile", "log", "log4"]);
+                    logRows[y].gap = Math.floor(4*Math.random()) + 1;
+                }
+            }
         }
     });
 }
@@ -481,7 +509,6 @@ function moveDown(event) {
         if (careAhead(ahead).death) {  killPlayer(); }
         else if (careAhead(ahead).score) { eatFly(); }
     }
-    active = active == true ? false : true;
 }
 
 /**Effect of user trigger to move player light
@@ -494,9 +521,6 @@ function moveLeft(event) {
         if (careAhead(ahead).death) {  killPlayer(); }
         else if (careAhead(ahead).score) { eatFly(); }
     }
-    waterRows.forEach((element) => {
-        initSprite(gridX, element, "log1.PNG", ["tile", "log", "log1"]);
-    })
 }
 
 /**Effect of user trigger to move player right.
@@ -509,8 +533,6 @@ function moveRight(event) {
         if (careAhead(ahead).death) {  killPlayer(); }
         else if (careAhead(ahead).score) { eatFly(); }
     }
-    tick += tick == 4 ? (-3) : 1;
-    console.log("tick:", tick);
 }
 
 // --TOOLING SCRIPT--
@@ -518,7 +540,6 @@ function moveRight(event) {
  */
 function startUp() {
     if (active == false) {
-        active = true;
         startBtnEl.style.display = "none";
         var txt = document.createElement('p');
         txt.style.color = "white";
@@ -560,10 +581,11 @@ function delta(){
         }
     }
     if (active == true) { // every activetick
-        moveLogs();
+        updateLogs();
         toggleWater();
         toggleFly();
     }
+    tick += tick == 4 ? (-3) : 1;
     setTimeout(delta, 500);
 }
 
