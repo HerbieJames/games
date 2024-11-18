@@ -11,12 +11,17 @@ const gridYinit  = 2;
 const gridX      = 12;
 const gridY      = 12;
 const imgRoot    = "/frogger/assets/images/";
-let playerImg    = "frog1.PNG";
+let playerImg = "frog1.PNG";
 let player;
 //  FROGGER DECLARATIONS
-let active = false;
-let tick   = 0;
-let score  = 0;
+let roadRows  = []
+let waterRows = []
+let grassRows = []
+let logRows   = {}
+let carRows   = {}
+let active    = false;
+let tick      = 0;
+let score     = 0;
 let fly;
 
 //  TOOLING FUNCTIONS
@@ -150,6 +155,17 @@ function setSpriteDeg(element, deg) {
     element.style.transform = `rotate(${deg}deg)`;
 }
 
+/**Returns the grid co-ordinates of a given element
+ * @param {Element} element the target HTML element
+ * @return {Object}         the ".x" and ".y" values.
+*/
+function getSpriteXY(element) {
+    console.log(typeof(element), element)
+    var x = element.style.gridColumn
+    var y = element.style.gridRow
+    return {x: x, y :y}
+}
+
 /**Returns whether a given coordinate on the grid can be moved to by the player.
  * @param  {NodeList} ahead    All elements at a given coordinate
  * @return {Object}            An array of boolean elements named "moveable", "score" and "death".
@@ -167,7 +183,10 @@ function careAhead(ahead) {
             if (element.classList.contains("obst"))  { moveable = false; }
             if (element.classList.contains("point")) { score    = true;  }
             if (element.classList.contains("hurts")) { death    = true;  }
-            if (element.id == "player")               { plySprt  = true;  }
+            if (element.id == "player")              { plySprt  = true;  }
+        });
+        ahead.forEach((element) => { // for FROGGER only.
+            if (element.classList.contains("log"))   { death    = false;  }
         });
     }
     return {moveable: moveable, death: death, score: score, player: plySprt};
@@ -213,6 +232,13 @@ function killPlayer() {
  */
 function initRoadRows(y) {
     y.forEach((element) => {
+        var carIndex = element.toString();
+        Object.defineProperty(carRows, carIndex, { 
+            value : {
+                "length" : Math.ceil(Math.random()*4),
+                "gap" : Math.ceil(Math.random()*5)
+            }
+        });
         if (!y.includes(element-1) && !y.includes(element+1)) {
             for (let i = gridXinit; i <= gridX; i++) {
                 initSprite(i, element, "road1.PNG", ["tile", "road"]);
@@ -231,22 +257,30 @@ function initRoadRows(y) {
             }
         }
     });
+    console.log("carRows:", carRows);
 }
 
 /**Initializes water tiles on the row specified for level generation with initLevel.
  * @param {Array} y the row where tiles will be generated
  */
-function initWaterRow(y) {
+function initWaterRow(y) { 
     y.forEach((element) => {
+        var logIndex = element.toString();
+        Object.defineProperty(logRows, logIndex, { 
+            value : {
+                "length" : Math.ceil(Math.random()*4),
+                "gap" : Math.ceil(Math.random()*5)
+            }
+        });
         for (let i = gridXinit; i <= gridX; i++) {
             if ((i + (gridX-1)*element) % 2 == 0) {
                 initSprite(i, element, "water1.PNG", ["tile", "water", "hurts"]);
             } else {
                 initSprite(i, element, "water2.PNG", ["tile", "water", "hurts"]);
             }
-            
         }
     });
+    console.log("logRows:", logRows);
 }
 
 /**Initializes grass tiles on the row specified for level generation with initLevel.
@@ -272,7 +306,6 @@ function initGrassRow(y) {
                 initSprite(i, element, "grass1.PNG", ["tile", "grass"]);
             }
         }
-
     });
 }
 
@@ -311,9 +344,11 @@ function toggleFly() {
  * types of tiles to certain rows, then initializing them.
  */
 function initLevel() {
-    var roadRows = []
-    var waterRows = []
-    var grassRows = []
+    roadRows  = []
+    waterRows = []
+    grassRows = []
+    logRows   = {}
+    carRows   = {}
     for (let i = gridXinit; i <= gridX; i++) {
         initSprite(i, gridYinit, "grass4.PNG", ["tile"]);
     }
@@ -384,6 +419,44 @@ function eatFly() {
     fly.remove();
 }
 
+function updateLog(log) {
+    var elX = getSpriteXY(log).x;
+    if (elX == 1) { log.remove()
+    } else {
+        moveSprite(log, -1, 0);
+        //build logs
+        var buildLog = false;
+        if (elX == (gridX-1)){
+
+        }
+        //build logs
+    }
+}
+
+function moveLogs() {
+    waterRows.forEach((y) => {
+        var logSprites = document.getElementsByClassName("log");
+        var logLength  = logRows[y].length;
+        var logGap     = logRows[y].gap;
+        var moveRow    = false;
+        var logsInRow  = [];
+        var logsToGo   = [];
+        for (var i = 0; i < logSprites.length; i++) {
+            if (getSpriteXY(logSprites[i]).y == y){
+                logsInRow.push(logSprites[i]);
+            }
+        }
+        if (logLength == 1)                            { moveRow = true; 
+        } else if ((logLength < 4) && (tick % 2 == 1)) { moveRow = true;
+        } else if (tick == 1)                          { moveRow = true; }
+        if (moveRow == true) {
+            //Move Logs
+            logsInRow.forEach((element) => { updateLog(element); });
+            //Move Logs End
+        }
+    });
+}
+
 //INPUT FUNCTIONS
 /**Effect of user trigger to move player up
 */
@@ -408,6 +481,7 @@ function moveDown(event) {
         if (careAhead(ahead).death) {  killPlayer(); }
         else if (careAhead(ahead).score) { eatFly(); }
     }
+    active = active == true ? false : true;
 }
 
 /**Effect of user trigger to move player light
@@ -420,6 +494,9 @@ function moveLeft(event) {
         if (careAhead(ahead).death) {  killPlayer(); }
         else if (careAhead(ahead).score) { eatFly(); }
     }
+    waterRows.forEach((element) => {
+        initSprite(gridX, element, "log1.PNG", ["tile", "log", "log1"]);
+    })
 }
 
 /**Effect of user trigger to move player right.
@@ -432,6 +509,8 @@ function moveRight(event) {
         if (careAhead(ahead).death) {  killPlayer(); }
         else if (careAhead(ahead).score) { eatFly(); }
     }
+    tick += tick == 4 ? (-3) : 1;
+    console.log("tick:", tick);
 }
 
 // --TOOLING SCRIPT--
@@ -467,25 +546,25 @@ function endGame() {
 /**Repeats commands distributed in half and quarters.
 */
 function delta(){
-    if (active == true) {
-        if (tick % 2 == 1) {
-            toggleWater();
-            if (tick == 1) {
-            } else { // 3
-            }
-        } else {
-            toggleFly()
-            if (tick == 2) {
-            } else { // 4
-            }
-        }
-    } else {
+    if ((active == false) && (tick % 2 == 0)) {
+        startBtnEl.innerHTML = startBtnEl.innerHTML == "" ? "START" : "";
+    } else if (active == false) {
+        console.log("Welcome to Frogger!")
+    } else if (tick % 2 == 1) {
         if (tick == 1) {
-            startBtnEl.innerHTML = startBtnEl.innerHTML == "" ? "START" : "";
-        }      
+        } else { // 3
+        }
+    } else {// tick % 2 == 0
+        if (tick == 2) {
+        } else { // 4
+        }
     }
-    tick += tick == 4 ? (-3) : 1;
-    setTimeout(delta, 250);
+    if (active == true) { // every activetick
+        moveLogs();
+        toggleWater();
+        toggleFly();
+    }
+    setTimeout(delta, 500);
 }
 
 delta();

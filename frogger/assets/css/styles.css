@@ -42,8 +42,12 @@ small {
     z-index: 0;
 }
 
-#player {
+.log, .car {
     z-index: 1;
+}
+
+#player {
+    z-index: 2;
 }
 
 @media screen and (max-width:388px){
