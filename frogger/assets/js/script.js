@@ -158,6 +158,7 @@ function careAhead(ahead) {
     var moveable = true;
     var death    = false;
     var score    = false;
+    var plySprt
     if (ahead.length == 0) {
         moveable = false;
         console.log("BOUNDARY", ahead);
@@ -166,9 +167,10 @@ function careAhead(ahead) {
             if (element.classList.contains("obst"))  { moveable = false; }
             if (element.classList.contains("point")) { score    = true;  }
             if (element.classList.contains("hurts")) { death    = true;  }
+            if (element.id == "player")               { plySprt  = true;  }
         });
     }
-    return {moveable: moveable, death: death, score: score};
+    return {moveable: moveable, death: death, score: score, player: plySprt};
 }
 
 /**Creates a sprite with id "player" and src playerImg.
@@ -196,7 +198,12 @@ function killPlayer() {
     rightBtnEl.removeEventListener('click', moveRight);
     console.log("player death")
     player.src = imgRoot + "frog3.PNG";
-    setTimeout(setPlayer, 1000);
+    let life = document.querySelector(".life");
+    console.log("life:", life);
+    if (life) { 
+        life.remove();
+        setTimeout(setPlayer, 1000);
+    } else { setTimeout(endGame, 1000); }
 }
 
 //FROGGER TILING FUNCTIONS
@@ -319,6 +326,7 @@ function initLevel() {
             roadRows.push(y);
         } else if (totalRow * Math.random() <= roadRow + waterRow) {
             waterRows.push(y);
+            // grassRows.push(y);
         } else {
             grassRows.push(y);
         }
@@ -356,13 +364,24 @@ function stageLvl() {
     leftBtnEl.removeEventListener('click', moveLeft);
     rightBtnEl.removeEventListener('click', moveRight);
     clearLvl();
+    addScore(1000);
     setTimeout(initLevel, 1000);
     setTimeout(setPlayer, 1000);
 }
 
+function addScore(x) {
+    score += x
+    var scoreTxt = "";
+    for (let i = 1; i <= (6 - Math.floor(Math.log10(score)+1)); i++) { scoreTxt += "0"; }
+    scoreTxt += score;
+    document.getElementById("scoreEl").innerHTML = scoreTxt;
+    console.log(x, "Points! Score:", scoreTxt);
+}
+
 function eatFly() {
-    score += 25
-    console.log("25 Points! Score:", score);
+    addScore(250);
+    initSprite(fly.style.gridColumn, fly.style.gridRow, "grass2.PNG", ["tile"]);
+    fly.remove();
 }
 
 //INPUT FUNCTIONS
@@ -424,6 +443,7 @@ function startUp() {
         startBtnEl.style.display = "none";
         var txt = document.createElement('p');
         txt.style.color = "white";
+        txt.style.backgroundColor = "black";
         txt.classList.add(`score-area`);
         txt.style.gridRow    = 1;
         txt.id = `scoreEl`;
@@ -434,6 +454,14 @@ function startUp() {
         initLevel();
         setPlayer();
     }
+}
+
+function endGame() {
+    player.remove();
+    clearLvl();
+    active = false;
+    document.getElementById("scoreEl").remove();
+    startBtnEl.style.display = "inline";
 }
 
 /**Repeats commands distributed in half and quarters.
