@@ -10,7 +10,7 @@ const gridXinit  = 1;
 const gridYinit  = 2;
 const gridX      = 12;
 const gridY      = 12;
-const imgRoot    = "/frogger/assets/images/";
+const imgRoot    = "./frogger/assets/images/";
 let playerImg = "frog1.PNG";
 let player;
 
