@@ -733,7 +733,7 @@ function disableControl() {
 */
 function delta(){
     if ((active == false) && (tick % 2 == 0)) {
-        // startBtnEl.innerHTML = startBtnEl.innerHTML == "" ? "START" : "";
+        startBtnEl.innerHTML = startBtnEl.innerHTML == "" ? "START" : "";
     } else if (active == false) {
         console.log("Welcome to Frogger!");
     } else { // every activetick
