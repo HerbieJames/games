@@ -651,7 +651,7 @@ function updateCars() {
     roadRows.forEach((y) => {
         var moveRow    = false;
         if (carRows[y].len == 1)                           { moveRow = true; }
-        else if ((carRows[y].len == 2) && (tick % 2 == 1)) { moveRow = true; }
+        else if ((carRows[y].len == 2) && (tick % 2 == 0)) { moveRow = true; }
         else if (tick == 3)                                { moveRow = true; }
         if (moveRow == true) { moveCarRow(y); }
     });
