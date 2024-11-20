@@ -203,7 +203,7 @@ function initPlayer() {
 function setPlayer() {
     active = true;
     setSpriteXY(player, Math.ceil(gridX/2), gridY);
-    enableControl();
+    setTimeout(enableControl, 250);
     player.src = imgRoot + playerImg;
 }
 
@@ -467,7 +467,6 @@ function stageLvl() {
     addScore(1000);
     setTimeout(initLevel, 1000);
     setTimeout(setPlayer, 1000);
-    setTimeout(setPlayer, 1000);
 }
 
 /**Is called when the player moves into the same space as the fly. 
@@ -653,7 +652,7 @@ function updateCars() {
         var moveRow    = false;
         if (carRows[y].len == 1)                           { moveRow = true; }
         else if ((carRows[y].len == 2) && (tick % 2 == 1)) { moveRow = true; }
-        else if (tick == 1)                                { moveRow = true; }
+        else if (tick == 3)                                { moveRow = true; }
         if (moveRow == true) { moveCarRow(y); }
     });
 }
@@ -710,6 +709,14 @@ function moveRight(event) {
     }
 }
 
+function buttonMove(e) {
+    if ((e.code === "ArrowUp")||(e.code === "KeyW")||(e.code === "Space")) { moveUp();    }
+    else if ((e.code === "ArrowDown")  || (e.code === "KeyS"))             { moveDown();  }
+    else if ((e.code === "ArrowLeft")  || (e.code === "KeyA"))             { moveLeft();  }
+    else if ((e.code === "ArrowRight") || (e.code === "KeyD"))             { moveRight(); }
+}
+
+
 /**Enables the controls for the player for starting, resuming or reseting.
  */
 function enableControl() {
@@ -717,7 +724,7 @@ function enableControl() {
     downBtnEl.addEventListener("click", moveDown);
     leftBtnEl.addEventListener("click", moveLeft);
     rightBtnEl.addEventListener("click", moveRight);
-
+    document.addEventListener('keyup', buttonMove);
 }
 
 /**Disables the controls for the player for dying, pausing or reseting.
@@ -727,6 +734,7 @@ function disableControl() {
     downBtnEl.removeEventListener('click', moveDown);
     leftBtnEl.removeEventListener('click', moveLeft);
     rightBtnEl.removeEventListener('click', moveRight);
+    document.removeEventListener('keyup', buttonMove);
 }
 
 /**Runs every 500, and shuffles through tick values 1 -> 4 (1, 2, 3, 4, 1...)
