@@ -1,9 +1,18 @@
-small {
-    display: none;
+h1 {
+    font-size: xx-large;
 }
 
-#scoreEl, #nameEl {
-    font-size: 32px;
+#headboardEl {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+#gameEl > br{
+    display: block;
+    content: "";
+    margin-top: 16px;
 }
 
 #gameControllerEl {
@@ -11,20 +20,7 @@ small {
     flex-flow: row;
     height: 100%;
     width: 100%;
-
-}
-
-.pad-dirs {
-    flex: 1 1 0;
-    display: flex;
-    flex-flow: row;
-    height: 100%;
     padding: 1%;
-}
-
-.pad-main {
-    flex: 1 1 0;
-    height: 100%;
 }
 
 .button {
@@ -50,26 +46,10 @@ small {
     z-index: 2;
 }
 
-@media screen and (max-width:388px){
-    #gameDisplayEl {
-        height: 192px;
-        width: 192px;
-        grid-template-rows:    16px 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px;
-        grid-template-columns: 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px;
-    }
-
+@media  screen and (max-width:388px),
+        screen and (max-height: 574px){
     .sprite {
         height: 16px;
         width: 16px;
-    }
-
-    #scoreEl, #nameEl {
-        font-size: 16px;
-    }
-}
-
-@media screen and (max-width:192px){
-    * {
-        display: none;
     }
 }

@@ -6,22 +6,39 @@
 }
 
 body {  
-    display: flex;
+    overflow-y: scroll;
     flex-flow: column;
     align-items: center;
     overflow: hidden;
 }
 
-h4 {
-    color: green;
-}
-
-.game-score {
+footer, .shell-header {
+    display: flex;
+    flex-flow: row;
+    justify-content: center;
     width: 100%;
     height: 48px;
-    margin: auto;
-    max-width: 416px;
-    width: 100%;
+    color: white;
+    background-color: black;
+}
+
+br {
+    display: block;
+    content: "";
+    margin-top: 12px;
+}
+
+.page-wrap {
+    overflow-y: scroll;
+    height: calc(100vh - 48px);
+}
+
+small {
+    display: none;
+}
+
+a {
+    color: aqua;
 }
 
 .area {
@@ -31,16 +48,28 @@ h4 {
 
 .game-machine {
     flex: 1 1 0;
-    max-height: 100%;
-    max-width: 416px;
-    width: 100%;
+    height: auto;
+    width: calc(100vh - 184px);
+    margin: auto;
 }
 
 #gameEl {
     display: flex;
     flex-flow: column;
     flex: 1 1 0;
-    margin: 0px;
+    margin: 0px; 
+    height: calc(100vh - 62px);;
+}
+
+.game-header {
+    width: 100%;
+    height: 48px;
+    margin: auto;
+    width: 100%;
+}
+
+#scoreEl {
+    font-size: 32px;
 }
 
 .game-window {
@@ -67,6 +96,31 @@ h4 {
     position: absolute;
     width: 100%;
     height: 100%;
-    aspect-ratio: 1;
     font-size:xx-large;
+}
+
+.game-scores {
+    display: flex;
+    justify-content: center;
+}
+
+.game-footer {
+    height: 32px;
+}
+
+@media  screen and (max-width:388px),
+        screen and (max-height: 574px){
+    #gameDisplayEl {
+        height: 192px;
+        width: 192px;
+        grid-template-rows:    16px 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px;
+        grid-template-columns: 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px 16px;
+    }
+
+    #scoreEl { font-size: 16px; }
+}
+
+@media  screen and (max-width:192px),
+        screen and (max-height: 379px){
+    * { display: none; }
 }

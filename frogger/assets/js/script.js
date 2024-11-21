@@ -449,10 +449,10 @@ function clearLvl() {
     document.querySelectorAll(".car").forEach((element) => {
         element.remove();
     });
-    document.querySelectorAll("br").forEach((element) => {
+    grid.querySelectorAll("br").forEach((element) => {
         element.remove();
     });
-    document.querySelectorAll("small").forEach((element) => {
+    grid.querySelectorAll("small").forEach((element) => {
         element.remove();
     });
     console.log("----CLEARED----")
