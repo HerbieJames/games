@@ -1,20 +1,23 @@
 // DECLARATIONS
 // --TOOLING DECLARATIONS--
 const startBtnEl = document.getElementById("startBtnEl");
-const upBtnEl    = document.getElementById("btnUpEl");
-const downBtnEl  = document.getElementById("btnDownEl");
-const leftBtnEl  = document.getElementById("btnLeftEl");
-const rightBtnEl = document.getElementById("btnRightEl");
 const grid       = document.getElementById("gameDisplayEl");
-const gridXinit  = 1;
-const gridYinit  = 2;
 const gridX      = 12;
 const gridY      = 12;
+const gridXinit  = 1;
+const gridYinit  = 2;
+const spawnXinit = 6;
+const spawnYinit = 12;
 const imgRoot    = "./frogger/assets/images/";
+const DeathImg   = "frog3.PNG";
 let playerImg = "frog1.PNG";
 let player;
 
 // --FROGGER DECLARATIONS--
+const upBtnEl    = document.getElementById("btnUpEl");
+const downBtnEl  = document.getElementById("btnDownEl");
+const leftBtnEl  = document.getElementById("btnLeftEl");
+const rightBtnEl = document.getElementById("btnRightEl");
 let roadRows  = [];
 let waterRows = [];
 let grassRows = [];
@@ -200,9 +203,9 @@ function initPlayer() {
 
 /**Sets the player's coordinates to the centre of the bottom row
  */
-function setPlayer() {
+function setPlayer(x, y) {
     active = true;
-    setSpriteXY(player, Math.ceil(gridX/2), gridY);
+    setSpriteXY(player, x, y);
     setTimeout(enableControl, 250);
     player.src = imgRoot + playerImg;
 }
@@ -214,7 +217,7 @@ function endPlayer() {
         var life;
         active = false;
         disableControl();
-        player.src = imgRoot + "frog3.PNG";
+        player.src = imgRoot + DeathImg;
         allAtXY(gridX + 1 - lives, 1).forEach((element) => {
             if (element.classList.contains("life")) { life = element; }
         });
@@ -223,7 +226,7 @@ function endPlayer() {
             life.remove();
             lives -= 1
             console.log("life lost:", life, lives, "left")
-            setTimeout(setPlayer, 1000);
+            setTimeout(function() { setPlayer(spawnXinit, spawnYinit);}, 1000);
         } else { setTimeout(endGame, 1000); }
     }
 }
@@ -258,7 +261,7 @@ function startUp() {
         grid.appendChild(txt);
         initPlayer();
         initLevel();
-        setPlayer();
+        setPlayer(spawnXinit, spawnYinit);
     }
 }
 
@@ -466,7 +469,7 @@ function stageLvl() {
     clearLvl();
     addScore(1000);
     setTimeout(initLevel, 1000);
-    setTimeout(setPlayer, 1000);
+    setTimeout(function() { setPlayer(spawnXinit, spawnYinit); }, 1000);
 }
 
 /**Is called when the player moves into the same space as the fly. 
@@ -743,7 +746,6 @@ function delta(){
     if ((active == false) && (tick % 2 == 0)) {
         startBtnEl.innerHTML = startBtnEl.innerHTML == "" ? "START" : "";
     } else if (active == false) {
-        console.log("Welcome to Frogger!");
     } else { // every activetick
         updateLogs();
         updateCars();
@@ -755,4 +757,10 @@ function delta(){
 }
 
 // --SCRIPT--
+window.addEventListener("keydown", function(e) {
+    if(["Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) > -1) {
+        e.preventDefault();
+    }
+}, false);
+
 delta();
