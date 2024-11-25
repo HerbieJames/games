@@ -106,6 +106,30 @@ a {
     font-size:xx-large;
 }
 
+h1 {
+    font-size: xx-large;
+}
+
+#headboardEl {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+#gameControllerEl {
+    display: flex;
+    flex-flow: row;
+    height: 100%;
+    width: 100%;
+    padding: 1%;
+}
+
+.button {
+    flex: 1 1 0;
+    padding: 1%;
+}
+
 .game-scores {
     display: flex;
     justify-content: center;

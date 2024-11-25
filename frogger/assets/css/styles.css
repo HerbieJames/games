@@ -1,31 +1,7 @@
-h1 {
-    font-size: xx-large;
-}
-
-#headboardEl {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
-
 #gameEl > br{
     display: block;
     content: "";
     margin-top: 16px;
-}
-
-#gameControllerEl {
-    display: flex;
-    flex-flow: row;
-    height: 100%;
-    width: 100%;
-    padding: 1%;
-}
-
-.button {
-    flex: 1 1 0;
-    padding: 1%;
 }
 
 .sprite {
