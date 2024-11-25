@@ -49,7 +49,8 @@ a {
 .game-machine {
     flex: 1 1 0;
     height: auto;
-    width: calc(100vh - 184px);
+    width: calc(0.68 * 100vh);
+    max-width: 100vw;
     margin: auto;
 }
 
@@ -58,13 +59,12 @@ a {
     flex-flow: column;
     flex: 1 1 0;
     margin: 0px; 
-    height: calc(100vh - 62px);;
+    height: calc(100vh - 62px);
 }
 
 .game-header {
     width: 100%;
     height: 48px;
-    margin: auto;
     width: 100%;
 }
 
@@ -74,12 +74,13 @@ a {
 
 .game-window {
     background: 
-        linear-gradient(180deg,rgba(255,255,255,0.25), rgba(0,0,0, 0.75)),
-        linear-gradient(0deg,   rgba(255,255,255,0.25), rgba(0,0,0, 0.75)),
-        linear-gradient(90deg,  rgba(255,255,255,0.25), rgba(0,0,0, 0.75)),
-        linear-gradient(270deg, rgba(255,255,255,0.25), rgba(0,0,0, 0.75));
+        linear-gradient(180deg, rgba(255,255,255,0.25), rgba(0,0,0, 1)),
+        linear-gradient(90deg,  rgba(255,255,255,0.25), rgba(0,0,0, 0.5)),
+        linear-gradient(270deg, rgba(255,255,255,0.25), rgba(0,0,0, 0.5)),
+        linear-gradient(0deg,   rgba(255,255,255,0.25), rgba(0,0,0, 1));
     position: relative;
     aspect-ratio: 1 / 1;
+    flex: 1 1 0;
     display: flex;
 }
 
@@ -91,10 +92,11 @@ a {
     grid-template-rows:    32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px;
     grid-template-columns: 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px 32px;
     background-color: black;
+    box-shadow: 0px 0px 20px white;
 }
 
 .game-pad {
-    height: 128px;
+    flex: 1 1 0;
 }
 
 #startBtnEl {
@@ -126,7 +128,7 @@ h1 {
 }
 
 .button {
-    flex: 1 1 0;
+    flex: 2 1 0;
     padding: 1%;
 }
 
@@ -157,9 +159,14 @@ h1 {
         left: calc(50% - 96px);
         font-size:x-large;
     }
+    
+    .game-machine {
+        width: calc(0.52 * 100vh);
+        min-width: 192px;
+    }
 }
 
-@media  screen and (max-width:192px),
+@media  screen and (max-width:193px),
         screen and (max-height: 379px){
-    * { display: none; }
+    .page-wrap > * { display: none; }
 }
